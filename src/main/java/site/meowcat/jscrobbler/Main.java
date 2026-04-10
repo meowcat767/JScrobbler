@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import site.meowcat.jscrobbler.service.AuthService;
 
 public class Main extends Application {
 
@@ -30,8 +31,12 @@ public class Main extends Application {
         Button nowPlayingBtn = createSidebarButton("Now Playing");
         Button profileBtn = createSidebarButton("Profile");
         Button settingsBtn = createSidebarButton("Settings");
+        Button connectBtn = createSidebarButton("Connect to Last.fm");
+        Button confirmBtn = createSidebarButton("I've authorized");
 
-        sidebar.getChildren().addAll(logo, nowPlayingBtn, profileBtn, settingsBtn);
+        confirmBtn.setDisable(true);
+
+        sidebar.getChildren().addAll(logo, nowPlayingBtn, profileBtn, settingsBtn, connectBtn, confirmBtn);
 
 
         StackPane contentArea = new StackPane();
@@ -63,6 +68,29 @@ public class Main extends Application {
             nowPlayingView.setVisible(false);
             settingsView.setVisible(true);
             profileView.setVisible(false);
+        });
+
+        connectBtn.setOnAction(e -> {
+            try {
+                AuthService.openAuthPage();
+                confirmBtn.setDisable(false);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        confirmBtn.setOnAction(e -> {
+            try {
+                String sessionKey = AuthService.finishAuth();
+                System.out.println("Session Key: " + sessionKey);
+                confirmBtn.setDisable(true);
+                connectBtn.setText("Connected");
+                connectBtn.setDisable(true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to authorize: " + ex.getMessage());
+                alert.showAndWait();
+            }
         });
 
         root.setLeft(sidebar);
